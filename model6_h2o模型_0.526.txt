@@ -1,0 +1,45 @@
+import glob, re
+import numpy as np
+import pandas as pd
+from sklearn import *
+from datetime import datetime
+import h2o
+from h2o.automl import H2OAutoML
+h2o.init()
+
+train = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/train.csv')
+test = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/test.csv')
+	
+train['visitors'] = np.log1p(train['visitors'].values)
+
+htrain = h2o.H2OFrame(train)
+htest = h2o.H2OFrame(test)
+
+htrain.drop(['id', 'air_store_id', 'visit_date'])
+htest.drop(['id', 'air_store_id', 'visit_date'])
+
+x =htrain.columns
+y ='visitors'
+x.remove(y)
+
+def RMSLE(y_, pred):
+    return metrics.mean_squared_error(y_, pred)**0.5
+
+print('Starting h2o autoML model!')  
+
+aml = H2OAutoML(max_runtime_secs = 3350)
+aml.train(x=x, y =y, training_frame=htrain, leaderboard_frame = htest)
+
+print('Generate predictions...')
+htrain.drop(['visitors'])
+preds = aml.leader.predict(htrain)
+preds = preds.as_data_frame()
+print('RMSLE H2O automl leader: ', RMSLE(train['visitors'].values, preds))
+
+preds = aml.leader.predict(htest)
+preds = preds.as_data_frame()
+
+test['visitors'] = preds
+test['visitors'] = np.expm1(test['visitors']).clip(lower=0.)
+sub = test[['id','visitors']].copy()
+sub[['id', 'visitors']].to_csv('submission_6.csv', index=False)
