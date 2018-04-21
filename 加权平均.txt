@@ -1,0 +1,17 @@
+import glob, re
+import numpy as np
+import pandas as pd
+from sklearn import *
+from datetime import datetime
+
+sub1 = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/Desktop/submission_1.csv')
+sub2 = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/Desktop/submission_2.csv')
+sub3 = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/Desktop/submission_3.csv')
+sub4 = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/Desktop/submission_4.csv')
+sub5 = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/Desktop/submission_5.csv')
+sub6 = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/Desktop/submission_6.csv')
+
+sub_final = pd.DataFrame()
+sub_final['id'] = sub1['id']
+sub_final['visitors'] = 0.1*sub1['visitors']+0.1*sub2['visitors']+0.2*sub3['visitors']+0.4*sub4['visitors']+0.1*sub5['visitors']+0.1*sub6['visitors']
+sub_final.to_csv('SubmissonFinally.csv',index=False)
