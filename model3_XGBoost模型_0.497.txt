@@ -1,0 +1,22 @@
+import glob, re
+import numpy as np
+import pandas as pd
+from sklearn import *
+from datetime import datetime
+from xgboost import XGBRegressor
+
+train = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/train.csv')
+test = pd.read_csv('C:/Users/Administrator.PC-20170829ZOOV/test.csv')
+col = [c for c in train if c not in ['id', 'air_store_id', 'visit_date','visitors']]
+
+def RMSLE(y, pred):
+    return metrics.mean_squared_error(y, pred)**0.5
+model = XGBRegressor(learning_rate=0.2, random_state=3, n_estimators=280, subsample=0.8, 
+                      colsample_bytree=0.8, max_depth =12)
+model.fit(train[col], np.log1p(train['visitors'].values))
+preds = model.predict(train[col])
+print('RMSE: ', RMSLE(np.log1p(train['visitors'].values), preds))
+test['visitors'] = model.predict(test[col])
+test['visitors'] = np.expm1(test['visitors']).clip(lower=0.)
+sub = test[['id','visitors']].copy()
+sub[['id', 'visitors']].to_csv('submission_3.csv', index=False)
